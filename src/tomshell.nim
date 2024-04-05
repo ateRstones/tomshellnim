@@ -7,7 +7,7 @@ type
   Feature {. pure .} = enum
     git = "git"
 
-const preprint = "T> "
+const preprint = " T> "
 
 proc handleLiveInput(cursorStart: int, history: seq[string]): string =
   var ret = false
@@ -103,8 +103,9 @@ when isMainModule:
 
   while true:
     execute = true
-    stdout.styledWrite(fgBlue, preprint)
-    command = handleLiveInput(preprint.len(), history)
+    var currentPath = getCurrentDir()
+    stdout.styledWrite(fgGreen, currentPath, fgCyan, preprint)
+    command = handleLiveInput(currentPath.len() + preprint.len(), history)
     history.add(command)
     #echo "e:", command
 
@@ -126,6 +127,16 @@ when isMainModule:
           echo "Set ", f, " to ", featureMap[f]
         except:
           echo "Invalid option, please chose one of: ", join(Feature.mapIt($it), ", ")
+      execute = false
+
+    if command.startsWith("cd "):
+      # Todo handle paths with whitespace elements
+      var spl = command.splitWhitespace()
+      if spl.len() > 1:
+        try:
+          setCurrentDir(spl[1])
+        except:
+          echo getCurrentExceptionMsg()
       execute = false
 
     if featureMap[git]:
